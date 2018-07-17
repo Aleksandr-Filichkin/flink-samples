@@ -1,6 +1,6 @@
-package flink.com.flink.sample.functions;
+package com.filichkin.flink.sample.functions;
 
-import flink.com.flink.sample.Event;
+import com.filichkin.flink.sample.Event;
 import org.apache.flink.api.common.functions.AggregateFunction;
 
 import java.util.Comparator;

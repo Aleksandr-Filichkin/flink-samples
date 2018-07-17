@@ -1,4 +1,4 @@
-package flink.com.flink.sample;
+package com.filichkin.flink.sample;
 
 import java.util.Date;
 
