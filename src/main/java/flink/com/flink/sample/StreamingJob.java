@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-package flink.com.epam.flink.sample;
+package flink.com.flink.sample;
 
-import flink.com.epam.flink.sample.functions.EventAggregateFunction;
-import flink.com.epam.flink.sample.functions.EventMapFunction;
+import flink.com.flink.sample.functions.EventAggregateFunction;
+import flink.com.flink.sample.functions.EventMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

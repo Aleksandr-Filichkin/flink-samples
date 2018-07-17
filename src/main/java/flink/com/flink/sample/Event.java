@@ -1,4 +1,4 @@
-package flink.com.epam.flink.sample;
+package flink.com.flink.sample;
 
 import java.util.Date;
 

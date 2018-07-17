@@ -1,6 +1,6 @@
-package flink.com.epam.flink.sample.functions;
+package flink.com.flink.sample.functions;
 
-import flink.com.epam.flink.sample.Event;
+import flink.com.flink.sample.Event;
 import org.apache.flink.api.common.functions.MapFunction;
 
 import java.util.Date;
