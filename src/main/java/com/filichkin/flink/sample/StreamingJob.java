@@ -21,6 +21,8 @@ package com.filichkin.flink.sample;
 import com.filichkin.flink.sample.functions.EventAggregateFunction;
 import com.filichkin.flink.sample.functions.EventMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -32,44 +34,52 @@ import java.util.Properties;
 /**
  * Sample Flink example
  *
- * Read messages(eventNames)  from Kafka topic "flink-source"
- * remove events that start with "ignore"
- * window it for 30 sec
- * select the most popular event.
- * send popular event to Kafka topic "flink-sink"
- *
- *
+ * <p>Read messages(eventNames) from Kafka topic "flink-source" remove events that start with
+ * "ignore" window it for 30 sec select the most popular event. send popular event to Kafka topic
+ * "flink-sink"
  */
 public class StreamingJob {
 
+    public static final String KAFKA_SOURCE_TOPIC = "flink-source";
+    public static final String KAFKA_SINK_TOPIC = "flink-sink";
+    public static final String KAFKA_SERVER = "localhost:9092";
+    public static final String KAFKA_GROUP_ID = "test";
+
     public static void main(String[] args) throws Exception {
         // set up the streaming execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        final int parallelism = 1;
+        final Configuration configuration = new Configuration();
+        configuration.setInteger(TaskManagerOptions.NUM_TASK_SLOTS, 100);
+
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment(parallelism, configuration);
+
 
         Properties kafkaProperties = new Properties();
-        kafkaProperties.setProperty("bootstrap.servers", "localhost:9092");
-        kafkaProperties.setProperty("group.id", "test");
+        kafkaProperties.setProperty("bootstrap.servers", KAFKA_SERVER);
+        kafkaProperties.setProperty("group.id", KAFKA_GROUP_ID);
 
 
-        DataStream<String> kafkaSource = env.addSource(new FlinkKafkaConsumer010<>("flink-source", new SimpleStringSchema(), kafkaProperties)).name("Kafka-Source");
-
-
-//        DataStream<Event> allGoodEvents = kafkaSource.map(new EventMapFunction()).name("MAP function")
-//                .filter(event -> !event.getName().startsWith("ignore"));
-//        allGoodEvents.print();
-//        allGoodEvents.addSink(new FlinkKafkaProducer010<>("localhost:9092", "flink-sink", (event) -> event.getName().getBytes())).name("Kafka Sink");
-
-
-        DataStream<Event> mostPopularEventIn30Second = kafkaSource.map(new EventMapFunction()).name("MAP function")
+        env.addSource(new FlinkKafkaConsumer010<>(KAFKA_SOURCE_TOPIC, new SimpleStringSchema(), kafkaProperties))
+//                .slotSharingGroup("Kafka-Source")
+                .name("Kafka-Source")
+                .map(new EventMapFunction())
+//                .slotSharingGroup("MAP-Filter")
+                .name("MAP function")
                 .filter(event -> !event.getName().startsWith("ignore"))
-                .timeWindowAll(Time.seconds(30))
-                .aggregate(new EventAggregateFunction());
-        mostPopularEventIn30Second.print();
-        mostPopularEventIn30Second.addSink(new FlinkKafkaProducer010<>("localhost:9092", "flink-sink", (event) -> event.getName().getBytes())).name("Kafka Sink")
+//                .slotSharingGroup("MAP-Filter")
+                .addSink(
+                        new FlinkKafkaProducer010<>(
+                                "localhost:9092", KAFKA_SINK_TOPIC, (event) -> event.toString().getBytes()))
+//                .slotSharingGroup("Flink sink")
+                .name("Kafka Sink");
 
+//                DataStream<Event> mostPopularEventIn30Second =  env.addSource(new FlinkKafkaConsumer010<>(KAFKA_SOURCE_TOPIC, new SimpleStringSchema(), kafkaProperties)).map(new EventMapFunction()).name("MAP function").slotSharingGroup("Map")
+//                        .filter(event -> !event.getName().startsWith("ignore")).slotSharingGroup("Filter")
+//                        .timeWindowAll(Time.seconds(30))
+//                        .aggregate(new EventAggregateFunction()).name("Aggregation").slotSharingGroup("Window Aggregation");
+//        //        mostPopularEventIn30Second.print();
+//                mostPopularEventIn30Second.addSink(new FlinkKafkaProducer010<>("localhost:9092", KAFKA_SINK_TOPIC, (event) -> event.getName().getBytes())).name("Kafka Sink").slotSharingGroup("Kafka Sink");
 
         env.execute("Flink Streaming Java API Skeleton");
     }
-
-
 }
