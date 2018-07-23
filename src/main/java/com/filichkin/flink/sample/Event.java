@@ -1,12 +1,13 @@
 package com.filichkin.flink.sample;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 public class Event  {
     private final String name;
-    private final Date generationTime;
+    private final LocalDateTime generationTime;
 
-    public Event(String name, Date generationTime) {
+    public Event(String name, LocalDateTime generationTime) {
         this.name = name;
         this.generationTime = generationTime;
     }
@@ -15,7 +16,7 @@ public class Event  {
         return name;
     }
 
-    public Date getGenerationTime() {
+    public LocalDateTime getGenerationTime() {
         return generationTime;
     }
 

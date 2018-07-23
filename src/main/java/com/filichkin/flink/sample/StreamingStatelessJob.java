@@ -23,6 +23,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Properties;
 
@@ -62,7 +63,7 @@ public class StreamingStatelessJob {
                 .filter(x -> !x.startsWith("ignore")).name("filter").slotSharingGroup("Kafka and filter")
                 .map(s -> {
                     Thread.sleep(1);//some calculation or request to some service/ DB
-                    return new Event(s, new Date());
+                    return new Event(s, LocalDateTime.now());
                 }).name("Building event").slotSharingGroup("Building event")
                 .addSink(new FlinkKafkaProducer010<Event>(KAFKA_SERVER, KAFKA_SINK_TOPIC, event -> event.toString().getBytes())).name("Kafka sink").slotSharingGroup("Result");
         env.execute();
